@@ -19,7 +19,9 @@
 // using Microsoft.EntityFrameworkCore;
 // using Persistence;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +29,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();              // если нужны контроллеры
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();                   // на всякий случай
+
+
+builder.Services.AddDbContext<AppDbContext>(x => {
+    //x.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
+    x.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
 
 var app = builder.Build();
 
