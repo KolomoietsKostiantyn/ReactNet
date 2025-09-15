@@ -97,6 +97,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.MapHub<CommentHub>("/comments");
-
+var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+logger.LogInformation("APP STARTED {Time}", DateTimeOffset.Now);
 app.Run();
 
