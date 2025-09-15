@@ -37,10 +37,18 @@ jobs:
         shell: bash
         working-directory: ./Reactivities
         run: |
-          if ls **/*.[Tt]est.csproj 1>/dev/null 2>&1; then
-            dotnet test --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+          set -e
+          # Ищем любые проекты с окончанием *Test.csproj / *test.csproj
+          TEST_PROJECTS=$(find . -type f -name "*[Tt]est.csproj")
+          if [ -n "$TEST_PROJECTS" ]; then
+            echo "Found test projects:"
+            echo "$TEST_PROJECTS"
+            for proj in $TEST_PROJECTS; do
+              echo "Running tests in $proj"
+              dotnet test "$proj" --configuration Release --no-build --logger "trx;LogFileName=$(basename "$proj").trx"
+            done
           else
-            echo "No *Tests.csproj found. Skipping tests."
+            echo "No *Test.csproj found. Skipping tests."
           fi
         # ↓ Ищем тестовые проекты; если есть — гоняем тесты и пишем отчёт .trx; если нет — пропускаем
 
