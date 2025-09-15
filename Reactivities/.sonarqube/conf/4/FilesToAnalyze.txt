@@ -1,0 +1,21 @@
+﻿E:\NetReact\Reactivities\API\Controllers\AccountController.cs
+E:\NetReact\Reactivities\API\Controllers\ActivitiesController.cs
+E:\NetReact\Reactivities\API\Controllers\BaseApiController.cs
+E:\NetReact\Reactivities\API\Controllers\BuggyController.cs
+E:\NetReact\Reactivities\API\Controllers\FolowController.cs
+E:\NetReact\Reactivities\API\Controllers\ProfilesController.cs
+E:\NetReact\Reactivities\API\DTOs\ActivityDTO.cs
+E:\NetReact\Reactivities\API\DTOs\UserDto.cs
+E:\NetReact\Reactivities\API\Maping\ActivityMappingConfig .cs
+E:\NetReact\Reactivities\API\Middlware\ExeptionHendlerMiddlware.cs
+E:\NetReact\Reactivities\API\Program.cs
+E:\NetReact\Reactivities\API\SignalR\CommentHub.cs
+E:\NetReact\Reactivities\API\obj\Debug\net8.0\API.GlobalUsings.g.cs
+E:\NetReact\Reactivities\API\obj\Debug\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs
+E:\NetReact\Reactivities\API\obj\Debug\net8.0\API.AssemblyInfo.cs
+E:\NetReact\Reactivities\API\appsettings.Development.json
+E:\NetReact\Reactivities\API\appsettings.json
+E:\NetReact\Reactivities\API\reactivities.db
+E:\NetReact\Reactivities\API\Properties\launchSettings.json
+E:\NetReact\Reactivities\API\Properties\serviceDependencies.json
+E:\NetReact\Reactivities\API\Properties\serviceDependencies.local.json

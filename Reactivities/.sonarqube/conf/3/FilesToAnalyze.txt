@@ -1,0 +1,3 @@
+﻿E:\NetReact\Reactivities\Infrastracture\PhotoServise\PhotoServise.cs
+E:\NetReact\Reactivities\Infrastracture\Security\IsActivityHostRequirement .cs
+E:\NetReact\Reactivities\Infrastracture\UserInfo.cs

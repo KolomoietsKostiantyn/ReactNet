@@ -1,0 +1,6 @@
+﻿E:\NetReact\Reactivities\Domain\Activity.cs
+E:\NetReact\Reactivities\Domain\ActivityAttendee.cs
+E:\NetReact\Reactivities\Domain\Comment.cs
+E:\NetReact\Reactivities\Domain\Photo.cs
+E:\NetReact\Reactivities\Domain\User.cs
+E:\NetReact\Reactivities\Domain\UserFolowing.cs

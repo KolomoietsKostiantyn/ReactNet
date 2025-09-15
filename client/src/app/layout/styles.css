@@ -1,0 +1,35 @@
+.appbar {
+  background: #1976d2;   /* цвет как в MUI primary */
+  color: #fff;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  min-height: 64px;
+  padding: 0 16px;
+}
+
+.icon-button {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font-size: 24px;       /* размер «иконки» */
+  margin-right: 16px;
+  cursor: pointer;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.25rem;    /* ~ Typography variant="h6" */
+  font-weight: 500;
+  flex: 1;               /* как sx={{ flexGrow: 1 }} */
+}
+
+.text-button {
+  background: transparent;
+  border: 1px solid transparent;
+  color: inherit;
+  padding: 6px 16px;
+  cursor: pointer;
+}
