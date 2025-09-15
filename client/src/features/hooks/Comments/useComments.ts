@@ -12,7 +12,7 @@ export const useComments = (activityId: string) => {
         connection: null as signalR.HubConnection | null,
         startConnection: function (activityId: string) {
             this.connection = new signalR.HubConnectionBuilder()
-                .withUrl(`https://localhost:5001/comments?id1=${activityId}`, { withCredentials: true }).withAutomaticReconnect().build();
+                .withUrl(`${import.meta.env.VITE_API_URL}/comments?id1=${activityId}`, { withCredentials: true }).withAutomaticReconnect().build();
 
             this.connection.on("LoadComments", (data: CommentData[]) => {
                 runInAction(() => {
