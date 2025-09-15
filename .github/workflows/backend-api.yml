@@ -1,0 +1,91 @@
+name: Backend API – CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Reactivities/**'
+      - '.github/workflows/backend-api.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: backend-api-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      - name: Restore
+        run: dotnet restore
+        working-directory: ./Reactivities
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+        working-directory: ./Reactivities
+
+      - name: Test (auto-discover *Test.csproj)
+        shell: bash
+        working-directory: ./Reactivities
+        run: |
+          set -e
+          TESTS=$(find . -type f -iname "*test.csproj")
+          if [ -n "$TESTS" ]; then
+            for p in $TESTS; do
+              dotnet test "$p" --configuration Release --no-build --logger "trx;LogFileName=$(basename "$p").trx"
+            done
+          else
+            echo "No tests found. Skipping."
+          fi
+
+      - name: Publish
+        run: dotnet publish -c Release -o ${{ runner.temp }}/publish
+        working-directory: ./Reactivities
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-publish
+          path: ${{ runner.temp }}/publish
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build_and_test
+    # деплоим и при push, и при ручном запуске
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-publish
+          path: ./artifact
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_DA793B4D91A344079D2B6C81A375ECE5 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_520A68C73ACE48CDB9F1580DE13C5540 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_50FB5C16AF164745BFF6F0B82912C42A }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: app-reactivities-api-dev
+          package: ./artifact
+          # slot-name: production  # можно не указывать, если дефолтный слот
