@@ -1,98 +1,65 @@
-# Название workflow'а, как он будет отображаться в GitHub Actions
-name: Build and deploy ASP.NET Core app to Azure Web App - app-reactivities-api-dev
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy ASP.Net Core app to Azure Web App - app-reactivities-api-dev
 
 on:
   push:
-    branches: [ main ]     # триггер: любой push в main запускает только build+test
-  workflow_dispatch:        # ручной запуск; при нем выполнится и деплой
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     permissions:
-      contents: read        # нужно, чтобы checkout мог читать репозиторий
+      contents: read #This is required for actions/checkout
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        # ↓ Клонируем код репозитория
+      - uses: actions/checkout@v4
 
-      - name: Set up .NET
+      - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.x'
-        # ↓ Ставим SDK .NET 8.x, чтобы можно было билдить/тестировать
 
-      - name: Restore
-        run: dotnet restore
-        working-directory: ./Reactivities
-        # ↓ Качаем NuGet-пакеты для решения/проекта в папке Reactivities
+      - name: Build with dotnet
+        run: dotnet build --configuration Release
 
-      - name: Build
-        run: dotnet build --configuration Release --no-restore
-        working-directory: ./Reactivities
-        # ↓ Компилируем в Release (без повторного restore)
+      - name: dotnet publish
+        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
 
-      - name: Test (auto-skip if no tests)
-        shell: bash
-        working-directory: ./Reactivities
-        run: |
-          set -e
-          # Ищем любые проекты с окончанием *Test.csproj / *test.csproj
-          TEST_PROJECTS=$(find . -type f -name "*[Tt]est.csproj")
-          if [ -n "$TEST_PROJECTS" ]; then
-            echo "Found test projects:"
-            echo "$TEST_PROJECTS"
-            for proj in $TEST_PROJECTS; do
-              echo "Running tests in $proj"
-              dotnet test "$proj" --configuration Release --no-build --logger "trx;LogFileName=$(basename "$proj").trx"
-            done
-          else
-            echo "No *Test.csproj found. Skipping tests."
-          fi
-        # ↓ Ищем тестовые проекты; если есть — гоняем тесты и пишем отчёт .trx; если нет — пропускаем
-
-      - name: Publish
-        run: dotnet publish -c Release -o ${{ runner.temp }}/publish
-        working-directory: ./Reactivities
-        # ↓ Собираем self-contained папку приложения (артефакты для деплоя) в $RUNNER_TEMP/publish
-
-      - name: Upload artifact for deployment
+      - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
-          name: dotnet-app
-          path: ${{ runner.temp }}/publish
-        # ↓ Загружаем собранный publish как артефакт, чтобы job "deploy" мог его забрать
+          name: .net-app
+          path: ${{env.DOTNET_ROOT}}/myapp
 
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: build
-    if: github.event_name == 'workflow_dispatch'
-    # ↓ Деплой выполняется ТОЛЬКО при ручном запуске (кнопка Run workflow)
-
     permissions:
-      id-token: write        # нужно для OIDC-логина в Azure
-      contents: read
+      id-token: write #This is required for requesting the JWT
+      contents: read #This is required for actions/checkout
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: dotnet-app
-        # ↓ Скачиваем артефакт (папку publish), созданный на этапе build
-
+          name: .net-app
+      
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_E2FD0734C95C453B990205A82973CAA5 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E31B8BBD953F4CD782C51E20D8F6092A }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_1368705159CA480E94295E75B1D2E5B2 }}
-        # ↓ Логинимся в Azure через OIDC (использует выданные Azure секреты)
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_4804FEBFE61D421EA550E8AF07C9CE54 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_84D45F124C034398888DC009E6E8B9BB }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_23899DE9C05C475F8E16F564E049C922 }}
 
       - name: Deploy to Azure Web App
+        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'app-reactivities-api-dev'   # имя вашего Web App в Azure
+          app-name: 'app-reactivities-api-dev'
           slot-name: 'Production'
           package: .
-        # ↓ Деплоим скачанный артефакт в выбранный Web App (слот Production)
+          
