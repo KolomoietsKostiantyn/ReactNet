@@ -81,7 +81,7 @@ app.UseCors(x => x
     .AllowAnyHeader()
     .AllowAnyMethod()
     .AllowCredentials()
-    .WithOrigins("http://localhost:3000", "https://localhost:3000"));
+    .WithOrigins("http://localhost:3000", "https://localhost:3000", "https://lively-mud-0dee66a03.1.azurestaticapps.net"));
 
 app.UseAuthentication();
 app.UseAuthorization();
