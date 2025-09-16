@@ -1,35 +1,26 @@
 name: UI
 
 on:
-  workflow_dispatch:   # 👈 запускать только вручную (кнопка в Actions)
+  workflow_dispatch:
 
 jobs:
-  build_and_deploy_job:
-    runs-on: ubuntu-latest       # Среда, где запускается job — Ubuntu Linux
-    name: Build and Deploy Job   # Имя job, видно в Actions
+  build_and_deploy:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3   # ⬇️ Клонирует твой репозиторий в раннер
+      - uses: actions/checkout@v3
+
+      - name: Build client (Vite)
+        working-directory: client
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+        run: |
+          npm ci
+          npm run build
+
+      - name: Deploy dist to SWA (no build)
+        uses: Azure/static-web-apps-deploy@v1
         with:
-          submodules: true          # Если в проекте есть git submodules — подтянет их
-          lfs: false                # Git LFS (большие файлы). false = не использовать
-
-      - name: Build And Deploy
-        id: builddeploy
-        uses: Azure/static-web-apps-deploy@v1  # ⬇️ Официальный action Azure SWA для деплоя
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_LIVELY_MUD_0DEE66A03 }} 
-          # 🔑 Секретный токен, чтобы GitHub мог заливать файлы в Azure
-
-          repo_token: ${{ secrets.GITHUB_TOKEN }}  
-          # 🔑 Стандартный GitHub-токен (для комментариев в PR и интеграций)
-
-          action: "upload"  
-          # 📦 Команда для action: "upload" = собрать и загрузить фронт в SWA
-
-          # ==============================
-          # 🔧 Настройки сборки проекта
-          # ==============================
-
-          app_location: "./client"   # 📂 Путь к фронтенду в репозитории
-          api_location: ""           # 📂 Путь к API (у тебя бэкенд отдельно → оставляем пустым)
-          output_location: "dist"    # 📂 Папка с результатом билда (vite build → client/dist)
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_LIVELY_MUD_0DEE66A03 }}
+          action: upload
+          app_location: client/dist  # загружаем уже собранные файлы
+          output_location: ""        # сборку в action не запускаем
