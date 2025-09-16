@@ -23,17 +23,20 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
-builder.Services.AddControllers(options => {
+builder.Services.AddControllers(options =>
+{
     var polisy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
     options.Filters.Add(new AuthorizeFilter(polisy));
 });
 
-builder.Services.AddAuthorization(option => {
+builder.Services.AddAuthorization(option =>
+{
     option.AddPolicy("IsActivityHost", policy =>
         policy.Requirements.Add(new IsActivityHostRequirement()));
 });
 
-builder.Services.AddSingleton<Cloudinary>(x => {
+builder.Services.AddSingleton<Cloudinary>(x =>
+{
     return new Cloudinary(new Account(
             builder.Configuration.GetValue<string>("Cloudinary:CLOUDINARY_CLOUD_NAME"),
              builder.Configuration.GetValue<string>("Cloudinary:CLOUDINARY_API_KEY"),
@@ -44,14 +47,16 @@ builder.Services.AddSingleton<Cloudinary>(x => {
 //builder.Services.AddScoped<IAuthorizationRequirement, IsActivityHostRequirement>();
 builder.Services.AddScoped<IAuthorizationHandler, IsActivityHostRequirementHendler>();
 
-builder.Services.AddDbContext<AppDbContext>(x => {
+builder.Services.AddDbContext<AppDbContext>(x =>
+{
     //x.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"));
     x.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
 builder.Services.AddCors();
 
-builder.Services.AddMediatR(x => {
+builder.Services.AddMediatR(x =>
+{
     x.RegisterServicesFromAssemblyContaining<GetActivities>();
     x.AddOpenBehavior(typeof(ValidationBehavior<,>));
 });
@@ -60,7 +65,8 @@ builder.Services.AddValidatorsFromAssemblyContaining<CreateActivityCommandValida
 builder.Services.AddTransient<ExeptionHendlerMiddlware>();
 builder.Services.AddScoped<IUserInfo, UserInfo>();
 
-builder.Services.AddIdentityApiEndpoints<User>(option => {
+builder.Services.AddIdentityApiEndpoints<User>(option =>
+{
     option.User.RequireUniqueEmail = true;
 }).AddRoles<IdentityRole>()
 .AddEntityFrameworkStores<AppDbContext>();
@@ -70,6 +76,14 @@ builder.Services.AddScoped<IFileServise, PhotoServise>();
 TypeAdapterConfig.GlobalSettings.Scan(typeof(ActivityMappingConfig).Assembly);
 
 builder.Services.AddSignalR();
+
+builder.Services.ConfigureApplicationCookie(o =>
+{
+    o.Cookie.SameSite  = SameSiteMode.None;
+    o.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    o.Events.OnRedirectToLogin = ctx => { ctx.Response.StatusCode = 401; return Task.CompletedTask; };
+    o.Events.OnRedirectToAccessDenied = ctx => { ctx.Response.StatusCode = 403; return Task.CompletedTask; };
+});
 
 var app = builder.Build();
 
@@ -82,6 +96,7 @@ app.UseCors(x => x
     .AllowAnyMethod()
     .AllowCredentials()
     .WithOrigins("http://localhost:3000", "https://localhost:3000", "https://lively-mud-0dee66a03.1.azurestaticapps.net"));
+
 
 app.UseAuthentication();
 app.UseAuthorization();
