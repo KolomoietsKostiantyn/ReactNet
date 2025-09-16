@@ -11,7 +11,7 @@ export function useActivity(id?: string | null) {
   return useQuery({
     queryKey: ['activity', id],
     enabled: !!id,                      // не бьёмся в API, когда id нет
-    queryFn: () => client.get<Activity>(`https://localhost:5001/api/Activities/${id}`).then(r => r.data),
+    queryFn: () => client.get<Activity>(`api/Activities/${id}`).then(r => r.data),
 
     // Мгновенно показать объект из списка, если он уже загружен,
     // и параллельно фоново подтянуть полную версию детали:
