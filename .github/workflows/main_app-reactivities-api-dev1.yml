@@ -10,44 +10,40 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  API_PROJECT: Reactivities/API/API.csproj   # 👈 путь к твоему веб-проекту
+
 jobs:
   build_and_test:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.x'
 
       - name: Restore
-        run: dotnet restore
-        working-directory: ./Reactivities
+        run: dotnet restore $API_PROJECT
 
       - name: Build
-        run: dotnet build --configuration Release --no-restore
-        working-directory: ./Reactivities
+        run: dotnet build $API_PROJECT -c Release --no-restore
 
       - name: Test (auto-discover *Test.csproj)
         shell: bash
-        working-directory: ./Reactivities
         run: |
           set -e
           TESTS=$(find . -type f -iname "*test.csproj")
           if [ -n "$TESTS" ]; then
             for p in $TESTS; do
-              dotnet test "$p" --configuration Release --no-build --logger "trx;LogFileName=$(basename "$p").trx"
+              dotnet test "$p" -c Release --no-build --logger "trx;LogFileName=$(basename "$p").trx"
             done
           else
             echo "No tests found. Skipping."
           fi
 
-      - name: Publish
-        run: dotnet publish -c Release -o ${{ runner.temp }}/publish
-        working-directory: ./Reactivities
+      - name: Publish API only
+        run: dotnet publish $API_PROJECT -c Release -o ${{ runner.temp }}/publish /p:UseAppHost=false
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -58,15 +54,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build_and_test
-    # Раз уж запуск только вручную — оставляем защитную проверку
     if: github.event_name == 'workflow_dispatch'
-    permissions:
-      id-token: write
-      contents: read
-
+    permissions: { id-token: write, contents: read }
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: backend-publish
           path: ./artifact
@@ -78,9 +69,9 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_F60F786EA10F43F9BD5DEF82FC379071 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_22C4537AE201488EAB47A4FD3BF50FD9 }}
 
-      - name: Deploy to Azure Web App
+      - name: Deploy to Azure Web App (Linux)
         uses: azure/webapps-deploy@v3
         with:
           app-name: app-reactivities-api-dev1
           package: ./artifact
-          # slot-name: Production  # необязательно, если деплой в дефолтный слот
+          restart-app: true
